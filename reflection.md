@@ -12,6 +12,13 @@ For my initial UML design, I created four main classes: Owner, Pet, Task, and Sc
 
 - Did your design change during implementation?
 - If yes, describe at least one change and why you made it.
+Use Scheduler with an Owner object instead of separate tasks, available_minutes, and preferences.
+This keeps scheduling logic tied to the owner and avoids disconnecting data.
+Replace loose Dict[str, str] preferences with a clearer structure.
+This makes matches_preference() easier to implement and less error-prone.
+Add a helper to gather all pet tasks from an owner.
+This ensures the scheduler sees every pet task and doesn’t miss anything.
+
 
 ---
 
