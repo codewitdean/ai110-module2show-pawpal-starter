@@ -1,3 +1,5 @@
+from datetime import date, timedelta
+
 import pytest
 
 from pawpal_system import Owner, Pet, Task
@@ -34,3 +36,24 @@ def test_pet_add_task_increases_task_count():
     pet.add_task(task)
     assert len(pet.tasks) == 1
     assert pet.tasks[0].title == "Morning walk"
+
+
+def test_recurring_task_creates_next_occurrence():
+    task = Task(
+        title="Daily play",
+        category="play",
+        duration=20,
+        priority=7,
+        preferred_time="18:00",
+        recurring=True,
+        frequency="daily",
+        due_date=date.today(),
+    )
+
+    next_task = task.mark_complete()
+
+    assert task.completed
+    assert next_task is not None
+    assert next_task.frequency == "daily"
+    assert next_task.due_date == date.today() + timedelta(days=1)
+    assert not next_task.completed

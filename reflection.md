@@ -31,8 +31,8 @@ This ensures the scheduler sees every pet task and doesn’t miss anything.
 
 **b. Tradeoffs**
 
-- Describe one tradeoff your scheduler makes.
-- Why is that tradeoff reasonable for this scenario?
+- The scheduler only checks for exact preferred-time matches when detecting conflicts, rather than modeling task durations and overlapping time windows.
+- This tradeoff is reasonable because it keeps conflict detection lightweight and easy to understand for a simple pet care planner, while still catching the most obvious scheduling problems.
 
 ---
 
