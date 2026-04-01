@@ -88,38 +88,65 @@ if owner.pets:
 
     st.divider()
 
-    st.subheader("Current Tasks by Pet")
-    for pet in owner.pets:
-        if pet.tasks:
-            st.markdown(f"**{pet.name}**")
-            for task in pet.tasks:
-                st.markdown(
-                    f"- {task.title} ({task.category}) — {task.duration} min, priority {task.priority}, "
-                    f"preferred {task.preferred_time}, {'required' if task.required else 'optional'}"
-                )
-        else:
-            st.markdown(f"**{pet.name}** has no tasks yet.")
+    st.subheader("Current Tasks")
+    status_filter = st.selectbox("Show tasks", ["All", "Pending", "Completed"])
+    all_tasks = owner.get_all_tasks()
+
+    if status_filter != "All":
+        completed = status_filter == "Completed"
+        filtered_tasks = scheduler.filter_tasks_by_status(all_tasks, completed)
+    else:
+        filtered_tasks = all_tasks
+
+    if filtered_tasks:
+        task_rows = []
+        for task in scheduler.sort_by_time(filtered_tasks):
+            task_rows.append(
+                {
+                    "Pet": next(pet.name for pet in owner.pets if task in pet.tasks),
+                    "Title": task.title,
+                    "Category": task.category,
+                    "Time": task.preferred_time,
+                    "Duration": task.duration,
+                    "Priority": task.priority,
+                    "Required": task.required,
+                    "Status": "Completed" if task.completed else "Pending",
+                }
+            )
+        st.table(task_rows)
+    else:
+        st.info("No matching tasks to show.")
 
     st.divider()
 
     st.subheader("Build Schedule")
     if st.button("Generate schedule"):
         plan = scheduler.build_daily_plan(owner)
-        if plan:
-            st.markdown("### Today's Schedule")
-            for index, task in enumerate(plan, start=1):
-                st.write(
-                    f"{index}. {task.title} ({task.category}) — {task.duration} min, "
-                    f"{task.preferred_time}, {task.priority} priority, "
-                    f"Pet: {next(pet.name for pet in owner.pets if task in pet.tasks)}"
-                )
-        else:
-            st.warning("No tasks could fit in the selected time or preferences.")
 
         if scheduler.conflicts:
             st.warning("Scheduling conflicts detected:")
             for conflict in scheduler.conflicts:
-                st.write(f"- {conflict}")
+                st.warning(conflict)
+        else:
+            st.success("No scheduling conflicts detected.")
+
+        if plan:
+            task_rows = []
+            for index, task in enumerate(scheduler.sort_by_time(plan), start=1):
+                task_rows.append(
+                    {
+                        "#": index,
+                        "Task": task.title,
+                        "Pet": next(pet.name for pet in owner.pets if task in pet.tasks),
+                        "Category": task.category,
+                        "Time": task.preferred_time,
+                        "Duration": task.duration,
+                        "Priority": task.priority,
+                    }
+                )
+            st.table(task_rows)
+        else:
+            st.warning("No tasks could fit in the selected time or preferences.")
 
         st.info(scheduler.explain_plan(scheduler.selected_tasks, scheduler.skipped_tasks))
 else:
